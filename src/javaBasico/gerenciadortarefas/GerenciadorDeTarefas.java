@@ -1,5 +1,9 @@
 package javaBasico.gerenciadortarefas;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Scanner;
 
@@ -28,40 +32,35 @@ public class GerenciadorDeTarefas {
         }
     }
 
-    public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        GerenciadorDeTarefas gerenciador = new GerenciadorDeTarefas();
-
-        while (true) {
-            System.out.println("1. Adicionar Tarefa");
-            System.out.println("2. Listar Tarefas");
-            System.out.println("3. Completar Tarefa");
-            System.out.println("4. Sair");
-            System.out.print("Escolha uma opção: ");
-            int escolha = scanner.nextInt();
-            scanner.nextLine(); // Consumir a nova linha
-
-            switch (escolha) {
-                case 1:
-                    System.out.print("Digite a descrição da tarefa: ");
-                    String descricao = scanner.nextLine();
-                    gerenciador.adicionarTarefa(descricao);
-                    break;
-                case 2:
-                    gerenciador.listarTarefas();
-                    break;
-                case 3:
-                    System.out.print("Digite o número da tarefa a completar: ");
-                    int indice = scanner.nextInt();
-                    gerenciador.completarTarefa(indice);
-                    break;
-                case 4:
-                    System.out.println("Saindo...");
-                    scanner.close();
-                    return;
-                default:
-                    System.out.println("Opção inválida!");
+    public void salvarTarefas(String nomeArquivo){
+        try (FileWriter writer = new FileWriter(nomeArquivo)){
+            for (Tarefa tarefa : tarefas){
+                writer.write(tarefa.getDescricao() + "," + tarefa.isCompleta() + "\n");
             }
+            System.out.println("Tarefas salvas com sucesso!");
+        }catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void carregarTarefas(String nomeArquivo){
+        try (BufferedReader reader = new BufferedReader(new FileReader(nomeArquivo))) {
+            String linha;
+            while ((linha = reader.readLine()) != null) {
+                String[] partes = linha.split(",");
+                if (partes.length == 2) {
+                    String descricao = partes[0];
+                    boolean completa = Boolean.parseBoolean(partes[1]);
+                    Tarefa tarefa = new Tarefa(descricao);
+                    if (completa) {
+                        tarefa.marcarCompleta();
+                    }
+                    tarefas.add(tarefa);
+                }
+            }
+            System.out.println("Tarefas carregadas com sucesso!");
+        } catch (IOException e) {
+            System.out.println("Erro ao carregar tarefas: " + e.getMessage());
         }
     }
 }
